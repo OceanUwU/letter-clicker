@@ -71,7 +71,7 @@ export default function Letters(props) {
                     <div key={index} className={classes.letter}>
                         <Typography variant="h5">{getName(index)}</Typography>
                         <Typography>{engineeringNotation(letter)}</Typography>
-                        <Button variant="contained" onClick={() => buyLetter(index)}>{index == 0 ? 'Free' : `${consts.letters.cost}${getName(index-1)}`}</Button>
+                        <Button variant="contained" onClick={() => buyLetter(index)} disabled={index == 0 ? false : data.l[index-1] < consts.letters.cost}>{index == 0 ? 'Free' : `${consts.letters.cost}${getName(index-1)}`}</Button>
                     </div>
                 ))}
             </div>
