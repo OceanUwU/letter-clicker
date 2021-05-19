@@ -1,6 +1,6 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { Button, Typography, TextField } from '@material-ui/core';
+import { Button, Typography, TextField, Divider } from '@material-ui/core';
 import data from '../data';
 import emptyData from '../emptyData';
 import consts from '../consts';
@@ -57,6 +57,11 @@ export default function Settings() {
                     window.location.reload();
                 }
             })}>Reset all data</Button>
+
+            <Divider />
+
+            <Button variant="contained" href="https://github.com/OceanUwU/letter-clicker">GitHub</Button>
+            <Button variant="contained" href="https://www.guilded.gg/i/XENaA7op">Guilded</Button>
         </div>
     )
 };

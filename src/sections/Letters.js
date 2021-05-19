@@ -1,6 +1,7 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { Button, Typography } from '@material-ui/core';
+import { Button, IconButton, Typography } from '@material-ui/core';
+import ShoppingBasketIcon from '@material-ui/icons/ShoppingBasket';
 import engineeringNotation from '../engineeringNotation';
 import getName from '../getName';
 import letterCycle from '../cycles/letters';
@@ -28,6 +29,7 @@ const useStyles = makeStyles({
         },
         '& button': {
             width: '20%',
+            textTransform: 'none',
         },
     },
 
@@ -44,40 +46,75 @@ const useStyles = makeStyles({
     }
 });
 
+const buyModes = [1, 10, 100, 'max'];
+
 export default function Letters(props) {
     const classes = useStyles();
     const [letters, setLetters] = React.useState(data.l);
+    const [buyMode, setBuyMode] = React.useState(data.buyMode);
     const updateLetters = () => {
         setLetters(JSON.parse(JSON.stringify(data.l)));
     }
 
     React.useEffect(() => letterCycle(updateLetters), []);
 
+    const cost = n => Math.ceil(consts.letters.cost * ((((data.l.length-1) ** consts.letters.increaseAmount) ** (data.l.length-n-1))));
+
     const buyLetter = n => {
         if (n == 0)
-            void(0);
-        else if (data.l[n-1] >= consts.letters.cost)
-            data.l[n-1] -= consts.letters.cost;
-        else
-            return;
-        data.l[n]++;
+            data.l[n]++;
+        else {
+            let tempBuyMode = buyModes[buyMode];
+            if (n+1 == data.l.length) {
+                if (data.l[n] > 0)
+                    return;
+                tempBuyMode = 1;
+            }
+            if (typeof tempBuyMode == 'string') {
+                data.l[n] += Math.floor(data.l[n-1] / cost(n));
+                data.l[n-1] = data.l[n-1] % cost(n);
+            } else {
+                let fullCost = cost(n) * tempBuyMode;
+                if (data.l[n-1] >= fullCost) {
+                    data.l[n-1] -= fullCost;
+                    data.l[n] += tempBuyMode;
+                }
+            }
+        }
+
+        updateLetters();
+    }
+
+    const buyAll = () => {
+        for (let i = 0; i < data.l.length-2; i++) {
+            data.l[i+1] += Math.floor(data.l[i] / cost(i+1));
+            data.l[i] = data.l[i] % cost(i+1);
+        }
         updateLetters();
     }
     
     return (
         <div className={classes.root}>
             <div className={classes.letters}>
-                {letters.map((letter, index) => (
-                    <div key={index} className={classes.letter}>
-                        <Typography variant="h5">{getName(index)}</Typography>
-                        <Typography>{engineeringNotation(letter)}</Typography>
-                        <Button variant="contained" onClick={() => buyLetter(index)} disabled={index == 0 ? false : data.l[index-1] < consts.letters.cost}>{index == 0 ? 'Free' : `${consts.letters.cost}${getName(index-1)}`}</Button>
-                    </div>
-                ))}
+                {letters.map((letter, index) => {
+                    let fullCost = (typeof buyModes[buyMode] == 'string' ? 1 : buyModes[buyMode]) * cost(index);
+                    if (index == letters.length-1)
+                        fullCost = cost(index);
+
+                    return (
+                        <div key={index} className={classes.letter}>
+                            <Typography variant="h5">{getName(index)}</Typography>
+                            <Typography>{engineeringNotation(letter)}</Typography>
+                            <Button variant="contained" onClick={() => buyLetter(index)} disabled={index == 0 ? false : data.l[index-1] < fullCost}>{index == 0 ? 'Free' : `${engineeringNotation(fullCost)}${getName(index-1)}`}</Button>
+                        </div>
+                    );
+                })}
             </div>
 
             <div className={classes.bottomBar}>
-                <span>hi1</span>
+                <span>
+                    <span>hi3</span>
+                </span>
                 <svg className={classes.clock} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                     <g>
                         <ellipse strokeWidth="10" ry="45" rx="45" cy="50" cx="50" stroke="#000" fill="#ffffff"/>
@@ -98,7 +135,16 @@ export default function Letters(props) {
                         <rect id="clockhand" height="30" width="5" y="20" x="47.5" fill="#000000"/>
                     </g>
                 </svg>
-                <Button variant="contained" disableElevation>Buy: 1</Button>
+                <span>
+                    <IconButton size="small" onClick={buyAll} style={{marginRight: 5}}><ShoppingBasketIcon /></IconButton>
+                    <Button variant="contained" size="small" style={{textTransform: 'none'}} onClick={() => {
+                        let newMode = buyMode+1;
+                        if (!buyModes.hasOwnProperty(newMode))
+                            newMode = 0;
+                        setBuyMode(newMode);
+                        data.buyMode = newMode;
+                    }} disableElevation>B{buyModes[buyMode]}</Button>
+                </span>
             </div>
         </div>
     );

@@ -1,6 +1,7 @@
 export default {
     letters: {
-        cost: 20,
+        cost: 10,
         updateTime: 1000,
+        increaseAmount: 1,
     },
 };
